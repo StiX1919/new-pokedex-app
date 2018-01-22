@@ -24,27 +24,26 @@ class App extends Component {
     //   response.data.results.map(type => types.push(type.name))
     //   this.setState({types})
     // })
-    this.getPokemon('https://pokeapi.co/api/v2/pokemon/', [])
+    this.getPokemon('https://pokeapi.co/api/v2/pokemon/?limit=60', [], 0)
   }
 
   changeColor(color){
     this.setState({color})
   }
 
-  getPokemon(url, creatures){
+  getPokemon(url, creatures, num){
     let pokemon = creatures
+    let offset = num
     let next = ''
-    let previous = ''
-
-    axios.get(url).then( response => {
+    axios.get(url+`&offset=${offset}`).then( response => {
       response.data.results.map(item => {
         pokemon.push(item.name)
       })
       next = response.data.next
-      previous = response.data.previous
-      console.log(pokemon, next, previous)
+      console.log(pokemon)
       if(next !== null) {
-        this.getPokemon(next, pokemon)
+        offset += 60
+        this.getPokemon('https://pokeapi.co/api/v2/pokemon/?limit=60', pokemon, offset)
       }
       let page = []
 
