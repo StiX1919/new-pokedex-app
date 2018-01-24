@@ -14,22 +14,7 @@ const axios = require('axios')
 // const { domain, clientID, clientSecret } = require('../config').auth0
 
 const { 
-    // create, 
-    //     getInfo, 
-    //     newJob, 
-    //     getPosts, 
-    //     editPost, 
-    //     deletePost, 
-    //     editJob, 
-    //     openJobs, 
-    //     acceptJob, 
-    //     acceptedJobs, 
-    //     posterInfo, 
-    //     newComment, 
-    //     getComments, 
-    //     jobComplete, 
-    //     postReview, 
-    //     removeRunner
+    
      } = require('./src/controllers/userController');
 
 // const logout = require('express-passport-logout');
