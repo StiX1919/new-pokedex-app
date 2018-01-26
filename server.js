@@ -14,7 +14,7 @@ const axios = require('axios')
 // const { domain, clientID, clientSecret } = require('../config').auth0
 
 const { 
-    
+
      } = require('./src/controllers/userController');
 
 // const logout = require('express-passport-logout');
@@ -22,7 +22,6 @@ const {
 const port = 3000;
 const app = express();
 app.use((req, res, next)=>{
-    console.log(req.path)
     next()
 })
 
@@ -38,7 +37,12 @@ app.use(cors());
 app.use(session({
     secret: 'MoveToConfigPlz123',
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    cookie: {
+        maxAge: 3600000,
+        expires: new Date(Date.now() + 3600000),
+        pokemon: []
+    },
 }));
 
 //SAVED FOR BUILD
@@ -96,7 +100,26 @@ app.use(session({
     
         
 // })
-
+app.post('/api/getPokemon/:offset/', (req,res,next) => {
+    console.log('initial session', req.session)
+    if(!req.session.cookie.pokemon[0]){
+        req.session.cookie.pokemon = req.body.creatures
+        axios.get(`https://pokeapi.co/api/v2/pokemon/?limit=60&offset=${req.params.offset}`).then( response => {
+            response.data.results.map(item => {
+                req.session.cookie.pokemon.push(item)
+            })
+            next = response.data.next
+            let sentData = {pokemon: req.session.cookie.pokemon, next}
+            res.send(sentData)
+        })
+        console.log('made calls')
+    }
+    else {
+        console.log('Got from session')
+        let sentData = {pokemon: req.session.cookie.pokemon, next: null}
+        res.send(sentData)
+    }
+})
 
 
 

@@ -9,13 +9,17 @@ class App extends Component {
     this.state = {
       color: 'black',
       types: [],
+      pages: [],
       page: [],
-      index: 20
+      index: 20,
+      pokemon: []
     }
     this.changeColor = this.changeColor.bind(this)
     this.getPokemon = this.getPokemon.bind(this)
     this.nextPage = this.nextPage.bind(this)
     this.previousPage = this.previousPage.bind(this)
+
+    this.getSessionPokemon = this.getSessionPokemon.bind(this)
   }
 
   componentDidMount() {
@@ -24,11 +28,46 @@ class App extends Component {
     //   response.data.results.map(type => types.push(type.name))
     //   this.setState({types})
     // })
-    this.getPokemon('https://pokeapi.co/api/v2/pokemon/?limit=60', [], 0)
+    // this.getPokemon('https://pokeapi.co/api/v2/pokemon/?limit=60', [], 0)
+    this.getSessionPokemon(0, [])
   }
 
   changeColor(color){
     this.setState({color})
+  }
+
+  getSessionPokemon(num, creatures){
+    let offset = num
+    axios.post(`http://localhost:3000/api/getPokemon/${offset}/`, {creatures}).then(response => {
+      console.log('pokemon response', response)
+      if(response.data.next !== null){
+        offset += 60
+        this.getSessionPokemon(offset, response.data.pokemon)
+      } else { 
+          let pages = []
+          let page = []
+          
+          for(let i=0; i < response.data.pokemon.length; i++) {
+            if(!response.data.pokemon[i + 1]) {
+              page.push(response.data.pokemon[i])
+              pages.push(page)
+              
+            }
+            else if(page.length < 20) {
+              page.push(response.data.pokemon[i])
+            }
+            else if(page.length === 20){
+              pages.push(page)
+              page = []
+              page.push(response.data.pokemon[i])
+            }
+          }
+          console.log(pages)
+
+
+        this.setState({ pokemon: response.data.pokemon, pages, page: pages[0], pageNum: 0 })
+      }
+    })
   }
 
   getPokemon(url, creatures, num){
@@ -37,7 +76,7 @@ class App extends Component {
     let next = ''
     axios.get(url+`&offset=${offset}`).then( response => {
       response.data.results.map(item => {
-        pokemon.push(item.name)
+        pokemon.push(item)
       })
       next = response.data.next
       console.log(pokemon)
@@ -56,36 +95,10 @@ class App extends Component {
   }
 
   nextPage(){
-    let newPage = []
-    let currIndex = this.state.index
-    if(currIndex === 0){
-      currIndex += 20
-    }
-    this.state.pokemon.map((guy, index) => {
-      if(index > currIndex){
-        
-        
-          if(newPage.length < 20) 
-            newPage.push(guy)
-      }
-    })
-    let newIndex = currIndex + 20
-    this.setState({page: newPage, index: newIndex})
+    this.setState({pageNum: this.state.pageNum += 1 , page: this.state.pages[this.state.pageNum]})
   }
   previousPage(){
-    let newPage = []
-    let prevIndex = this.state.index - 20
-    if (prevIndex >= 0) {
-      this.state.pokemon.map((guy, index) => {
-        if(index > prevIndex - 1){
-          if(newPage.length < 20) 
-            newPage.push(guy)
-        }
-      })
-      let newIndex = prevIndex
-      this.setState({page: newPage, index: newIndex})
-    }
-    else {alert('this is the begining')}
+    this.setState({pageNum: this.state.pageNum -= 1 , page: this.state.pages[this.state.pageNum]})
   }
 
   render() {
@@ -103,7 +116,22 @@ class App extends Component {
     let pokelist = this.state.page.length > 0 ? (
       
         this.state.page.map(guy => {
-          return <h3>{guy}</h3>
+          let pokestr = guy.url
+          let pokenum = 0
+          function getPokenum(str){
+            let splitstr = str.split('/')
+            pokenum = splitstr[6]
+            console.log('stuff', guy.url, pokenum)
+          }
+          getPokenum(pokestr)
+          
+          return (
+            
+          <div>
+            <img src={require(`./pokemon/${pokenum}.png`)}/>
+            <h3>{guy.name}</h3>
+          </div>
+          )
         })
       
     ) : <h1>Loading...</h1>
@@ -117,8 +145,9 @@ class App extends Component {
         </header>
         {/* {typeList} */}
         {pokelist}
-        <button onClick={this.nextPage}>NEXT</button>
         <button onClick={this.previousPage}>PREVIOUS</button>
+        <button onClick={this.nextPage}>NEXT</button>
+        
       </div>
     );
   }
