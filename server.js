@@ -40,8 +40,7 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         maxAge: 3600000,
-        expires: new Date(Date.now() + 3600000),
-        pokemon: []
+        expires: new Date(Date.now() + 3600000)
     },
 }));
 
@@ -102,22 +101,29 @@ app.use(session({
 // })
 app.post('/api/getPokemon/:offset/', (req,res,next) => {
     console.log('initial session', req.session)
-    if(!req.session.cookie.pokemon[0]){
-        req.session.cookie.pokemon = req.body.creatures
+    if(!req.session.cookie.pokemon){
+        let dudes = req.body.creatures
+        
         axios.get(`https://pokeapi.co/api/v2/pokemon/?limit=60&offset=${req.params.offset}`).then( response => {
             response.data.results.map(item => {
-                req.session.cookie.pokemon.push(item)
+                dudes.push(item)
             })
             next = response.data.next
-            let sentData = {pokemon: req.session.cookie.pokemon, next}
+            let sentData = {pokemon: dudes, next}
+            if(next === null){
+                console.log('hit the end')
+                req.session.cookie.pokemon = req.body.creatures
+            }
             res.send(sentData)
-        })
+            
+        }).catch(err => console.log(err))
         console.log('made calls')
     }
     else {
         console.log('Got from session')
         let sentData = {pokemon: req.session.cookie.pokemon, next: null}
         res.send(sentData)
+        
     }
 })
 
