@@ -18,17 +18,13 @@ class App extends Component {
     this.getPokemon = this.getPokemon.bind(this)
     this.nextPage = this.nextPage.bind(this)
     this.previousPage = this.previousPage.bind(this)
+    this.choosePage = this.choosePage.bind(this)
 
     this.getSessionPokemon = this.getSessionPokemon.bind(this)
   }
 
   componentDidMount() {
-    // axios.get("https://pokeapi.co/api/v2/type/").then( response => {
-    //   let types = []
-    //   response.data.results.map(type => types.push(type.name))
-    //   this.setState({types})
-    // })
-    // this.getPokemon('https://pokeapi.co/api/v2/pokemon/?limit=60', [], 0)
+
     this.getSessionPokemon(0, [])
   }
 
@@ -51,7 +47,6 @@ class App extends Component {
             if(!response.data.pokemon[i + 1]) {
               page.push(response.data.pokemon[i])
               pages.push(page)
-              
             }
             else if(page.length < 20) {
               page.push(response.data.pokemon[i])
@@ -63,8 +58,6 @@ class App extends Component {
             }
           }
           console.log(pages)
-
-
         this.setState({ pokemon: response.data.pokemon, pages, page: pages[0], pageNum: 0 })
       }
     })
@@ -95,10 +88,23 @@ class App extends Component {
   }
 
   nextPage(){
-    this.setState({pageNum: this.state.pageNum += 1 , page: this.state.pages[this.state.pageNum]})
+    if(this.state.pages[this.state.pageNum + 1]){
+      this.setState({pageNum: this.state.pageNum += 1 , page: this.state.pages[this.state.pageNum]})
+      console.log(this.state.pages[this.state.pageNum + 1], this.state.pageNum + 1)
+    }
+    
   }
   previousPage(){
-    this.setState({pageNum: this.state.pageNum -= 1 , page: this.state.pages[this.state.pageNum]})
+    if(this.state.pages[this.state.pageNum - 1]){
+      this.setState({pageNum: this.state.pageNum -= 1 , page: this.state.pages[this.state.pageNum]})
+      console.log(this.state.pages[this.state.pageNum - 1], this.state.pageNum -1)
+    }
+  }
+  choosePage(index){
+    if(this.state.pages[index]){
+      this.setState({pageNum: index , page: this.state.pages[index]})
+      console.log(index, 'chose page')
+    }
   }
 
   render() {
@@ -112,6 +118,12 @@ class App extends Component {
         })
       
     ) : <h1>Loading...</h1>
+
+    let pageLinks = this.state.pages.length > 0 ? (
+      this.state.pages.map((page, index) => {
+        return <button style={index === this.state.pageNum ? {backgroundColor: 'blue'} : {backgroundColor: 'red'}} onClick={() => this.choosePage(index)}>{index + 1}</button>
+      })
+    ) : <h3>Grabbin guys</h3>
   
     let pokelist = this.state.page.length > 0 ? (
       
@@ -121,6 +133,9 @@ class App extends Component {
           function getPokenum(str){
             let splitstr = str.split('/')
             pokenum = splitstr[6]
+            if(pokenum > 10090) {
+              pokenum = 0
+            }
             console.log('stuff', guy.url, pokenum)
           }
           getPokenum(pokestr)
@@ -147,7 +162,7 @@ class App extends Component {
         {pokelist}
         <button onClick={this.previousPage}>PREVIOUS</button>
         <button onClick={this.nextPage}>NEXT</button>
-        
+        <div>{pageLinks}</div>
       </div>
     );
   }
