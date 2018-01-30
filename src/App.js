@@ -22,7 +22,7 @@ class App extends Component {
 
     this.getSessionPokemon = this.getSessionPokemon.bind(this)
   }
-
+ 
   componentDidMount() {
 
     this.getSessionPokemon(0, [])
