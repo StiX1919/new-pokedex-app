@@ -142,7 +142,7 @@ class App extends Component {
           
           return (
             
-          <div>
+          <div className='pokeCard'>
             <img src={require(`./pokemon/${pokenum}.png`)}/>
             <h3>{guy.name}</h3>
           </div>
@@ -159,7 +159,9 @@ class App extends Component {
           <h1 className="App-title">Welcome to React</h1>
         </header>
         {/* {typeList} */}
-        {pokelist}
+        <div className='pokemonDisplay'>
+          {pokelist}
+        </div>
         <button onClick={this.previousPage}>PREVIOUS</button>
         <button onClick={this.nextPage}>NEXT</button>
         <div>{pageLinks}</div>
