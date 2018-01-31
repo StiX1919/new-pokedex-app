@@ -27,6 +27,7 @@ class App extends Component {
     this.getSessionPokemon = this.getSessionPokemon.bind(this)
     this.searchPokemon = this.searchPokemon.bind(this)
     this.sortByName = this.sortByName.bind(this)
+    this.sortByNumber = this.sortByNumber.bind(this)
   }
  
   componentDidMount() {
@@ -172,6 +173,40 @@ class App extends Component {
     }
   }
 
+  sortByNumber(){
+    let sortedPokemon = this.state.filteredPokemon.sort((a, b) => {
+
+      let arrA = a.url.split('/')
+      let arrB = b.url.split('/')
+      
+      let numA = arrA[6]
+      let numB = arrB[6]
+
+      return numA - numB
+    })
+
+    if(sortedPokemon){
+      let newPages = []
+      let newPage = []
+      
+      for(let i=0; i < sortedPokemon.length; i++) {
+        if(!sortedPokemon[i + 1]) {
+          newPage.push(sortedPokemon[i])
+          newPages.push(newPage)
+        }
+        else if(newPage.length < 20) {
+          newPage.push(sortedPokemon[i])
+        }
+        else if(newPage.length === 20){
+          newPages.push(newPage)
+          newPage = []
+          newPage.push(sortedPokemon[i])
+        }
+      }
+      this.setState({ pages: newPages, page: newPages[0], pageNum: 0, filteredPokemon: sortedPokemon })
+    }
+  }
+
   render() {
     let style = {'backgroundColor': this.state.color}
 
@@ -220,6 +255,7 @@ class App extends Component {
         <div>
           <h3>Sort by:</h3>
           <h3 onClick={this.sortByName}>Name</h3>
+          <h3 onClick={this.sortByNumber}>Number</h3>
         </div>
         <div className='pokemonDisplay'>
           {pokelist}
