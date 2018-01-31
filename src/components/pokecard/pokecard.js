@@ -21,8 +21,8 @@ class Pokecard extends Component {
     render(){
 
         return(
-            <div className='pokeCard' onMouseEnter={this.hovering} onMouseLeave={this.hovering}>
-                <div>
+            <div className='pokeCard'>
+                <div onMouseEnter={this.hovering} onMouseLeave={this.hovering}>
                     {this.state.hovering === false &&
                         <img src={require(`../../pokemon/${this.props.pokenum}.png`)}/>
                     }

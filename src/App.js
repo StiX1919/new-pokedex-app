@@ -15,7 +15,8 @@ class App extends Component {
       pages: [],
       page: [],
       index: 20,
-      pokemon: []
+      pokemon: [],
+      filteredPokemon: []
     }
     this.changeColor = this.changeColor.bind(this)
     this.getPokemon = this.getPokemon.bind(this)
@@ -25,6 +26,7 @@ class App extends Component {
 
     this.getSessionPokemon = this.getSessionPokemon.bind(this)
     this.searchPokemon = this.searchPokemon.bind(this)
+    this.sortByName = this.sortByName.bind(this)
   }
  
   componentDidMount() {
@@ -61,7 +63,7 @@ class App extends Component {
             }
           }
           console.log(response.data)
-        this.setState({ pokemon: response.data.pokemon, pages, page: pages[0], pageNum: 0 })
+        this.setState({ pokemon: response.data.pokemon, pages, page: pages[0], pageNum: 0, filteredPokemon: response.data.pokemon})
       }
     })
   }
@@ -128,9 +130,46 @@ class App extends Component {
           newPage.push(newList[i])
         }
       }
-      this.setState({ pages: newPages, page: newPages[0], pageNum: 0 })
+      this.setState({ pages: newPages, page: newPages[0], pageNum: 0, filteredPokemon: newList })
     }
     
+  }
+
+  sortByName(){
+    let sortedPokemon = this.state.filteredPokemon.sort((a, b) => {
+      var nameA = a.name.toUpperCase(); 
+      var nameB = b.name.toUpperCase();
+      if (nameA < nameB) {
+        return -1;
+      }
+      if (nameA > nameB) {
+        return 1;
+      }
+    
+      // names must be equal
+      return 0
+    })
+
+    if(sortedPokemon){
+      let newPages = []
+      let newPage = []
+      
+      for(let i=0; i < sortedPokemon.length; i++) {
+        if(!sortedPokemon[i + 1]) {
+          newPage.push(sortedPokemon[i])
+          newPages.push(newPage)
+        }
+        else if(newPage.length < 20) {
+          newPage.push(sortedPokemon[i])
+        }
+        else if(newPage.length === 20){
+          newPages.push(newPage)
+          newPage = []
+          newPage.push(sortedPokemon[i])
+        }
+      }
+      this.setState({ pages: newPages, page: newPages[0], pageNum: 0, filteredPokemon: sortedPokemon })
+    }
   }
 
   render() {
@@ -163,13 +202,8 @@ class App extends Component {
             }
           }
           getPokenum(pokestr)
-          
           return (
             <Pokecard pokenum={pokenum} name={guy.name}/>
-          // <div className='pokeCard'>
-          //   <img src={require(`./pokemon/${pokenum}.png`)}/>
-          //   <h3>{guy.name}</h3>
-          // </div>
           )
         })
       
@@ -183,6 +217,10 @@ class App extends Component {
         </header>
         {/* {typeList} */}
         <input onChange={e => this.searchPokemon(e)}></input>
+        <div>
+          <h3>Sort by:</h3>
+          <h3 onClick={this.sortByName}>Name</h3>
+        </div>
         <div className='pokemonDisplay'>
           {pokelist}
         </div>
