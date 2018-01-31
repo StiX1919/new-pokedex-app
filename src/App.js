@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import axios from 'axios'
+
+import Pokecard from './components/pokecard/pokecard'
+
 import './App.css';
 
 class App extends Component {
@@ -21,6 +24,7 @@ class App extends Component {
     this.choosePage = this.choosePage.bind(this)
 
     this.getSessionPokemon = this.getSessionPokemon.bind(this)
+    this.searchPokemon = this.searchPokemon.bind(this)
   }
  
   componentDidMount() {
@@ -35,7 +39,6 @@ class App extends Component {
   getSessionPokemon(num, creatures){
     let offset = num
     axios.post(`http://localhost:3000/api/getPokemon/${offset}/`, {creatures}).then(response => {
-      console.log('pokemon response', response)
       if(response.data.next !== null){
         offset += 60
         this.getSessionPokemon(offset, response.data.pokemon)
@@ -57,7 +60,7 @@ class App extends Component {
               page.push(response.data.pokemon[i])
             }
           }
-          console.log(pages)
+          console.log(response.data)
         this.setState({ pokemon: response.data.pokemon, pages, page: pages[0], pageNum: 0 })
       }
     })
@@ -72,7 +75,6 @@ class App extends Component {
         pokemon.push(item)
       })
       next = response.data.next
-      console.log(pokemon)
       if(next !== null) {
         offset += 60
         this.getPokemon('https://pokeapi.co/api/v2/pokemon/?limit=60', pokemon, offset)
@@ -90,25 +92,48 @@ class App extends Component {
   nextPage(){
     if(this.state.pages[this.state.pageNum + 1]){
       this.setState({pageNum: this.state.pageNum += 1 , page: this.state.pages[this.state.pageNum]})
-      console.log(this.state.pages[this.state.pageNum + 1], this.state.pageNum + 1)
     }
     
   }
   previousPage(){
     if(this.state.pages[this.state.pageNum - 1]){
       this.setState({pageNum: this.state.pageNum -= 1 , page: this.state.pages[this.state.pageNum]})
-      console.log(this.state.pages[this.state.pageNum - 1], this.state.pageNum -1)
     }
   }
   choosePage(index){
     if(this.state.pages[index]){
       this.setState({pageNum: index , page: this.state.pages[index]})
-      console.log(index, 'chose page')
     }
   }
 
+  searchPokemon(e){
+    let newList = this.state.pokemon.filter(guy => {
+      return guy.name.includes(e.target.value)
+    })
+    if(newList){
+      let newPages = []
+      let newPage = []
+      
+      for(let i=0; i < newList.length; i++) {
+        if(!newList[i + 1]) {
+          newPage.push(newList[i])
+          newPages.push(newPage)
+        }
+        else if(newPage.length < 20) {
+          newPage.push(newList[i])
+        }
+        else if(newPage.length === 20){
+          newPages.push(newPage)
+          newPage = []
+          newPage.push(newList[i])
+        }
+      }
+      this.setState({ pages: newPages, page: newPages[0], pageNum: 0 })
+    }
+    
+  }
+
   render() {
-    console.log(this.state.index)
     let style = {'backgroundColor': this.state.color}
 
     let typeList = this.state.types.length > 0 ? (
@@ -136,22 +161,20 @@ class App extends Component {
             if(pokenum > 10090) {
               pokenum = 0
             }
-            console.log('stuff', guy.url, pokenum)
           }
           getPokenum(pokestr)
           
           return (
-            
-          <div className='pokeCard'>
-            <img src={require(`./pokemon/${pokenum}.png`)}/>
-            <h3>{guy.name}</h3>
-          </div>
+            <Pokecard pokenum={pokenum} name={guy.name}/>
+          // <div className='pokeCard'>
+          //   <img src={require(`./pokemon/${pokenum}.png`)}/>
+          //   <h3>{guy.name}</h3>
+          // </div>
           )
         })
       
     ) : <h1>Loading...</h1>
     
-    console.log(this.state.types)
     return (
       <div className="App">
         <header style={style} className="App-header">
@@ -159,6 +182,7 @@ class App extends Component {
           <h1 className="App-title">Welcome to React</h1>
         </header>
         {/* {typeList} */}
+        <input onChange={e => this.searchPokemon(e)}></input>
         <div className='pokemonDisplay'>
           {pokelist}
         </div>
