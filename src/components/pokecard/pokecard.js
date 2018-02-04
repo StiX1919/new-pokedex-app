@@ -1,6 +1,7 @@
 
 
 import React, { Component } from 'react';
+import axios from 'axios'
 
 import './pokecard.css'
 
@@ -12,16 +13,21 @@ class Pokecard extends Component {
         }
         
         this.hovering = this.hovering.bind(this)
+        this.getPokeInfo = this.getPokeInfo.bind(this)
     }
+
     hovering(){
         this.setState({hovering: !this.state.hovering})
+    }
+    getPokeInfo(pokeId) {
+        axios.get(`/api/getPokeInfo/${pokeId}`)
     }
 
 
     render(){
 
         return(
-            <div className='pokeCard'>
+            <div className='pokeCard' onClick={() => this.getPokeInfo(this.props.pokenum)}>
                 <div onMouseEnter={this.hovering} onMouseLeave={this.hovering}>
                     {this.state.hovering === false &&
                         <img src={require(`../../pokemon/${this.props.pokenum}.png`)}/>
