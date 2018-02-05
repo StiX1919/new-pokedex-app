@@ -2,6 +2,10 @@ import React, { Component } from 'react';
 import logo from './logo.svg';
 import axios from 'axios'
 
+import { connect } from 'react-redux'
+
+import { getSessionPokemon } from './ducks/pokeReducer'
+
 import Pokecard from './components/pokecard/pokecard'
 
 import './App.css';
@@ -19,12 +23,10 @@ class App extends Component {
       filteredPokemon: []
     }
     this.changeColor = this.changeColor.bind(this)
-    this.getPokemon = this.getPokemon.bind(this)
     this.nextPage = this.nextPage.bind(this)
     this.previousPage = this.previousPage.bind(this)
     this.choosePage = this.choosePage.bind(this)
 
-    this.getSessionPokemon = this.getSessionPokemon.bind(this)
     this.searchPokemon = this.searchPokemon.bind(this)
     this.sortByName = this.sortByName.bind(this)
     this.sortByNumber = this.sortByNumber.bind(this)
@@ -32,65 +34,13 @@ class App extends Component {
  
   componentDidMount() {
 
-    this.getSessionPokemon(0, [])
+    this.props.getSessionPokemon(0, [])
   }
 
   changeColor(color){
     this.setState({color})
   }
 
-  getSessionPokemon(num, creatures){
-    let offset = num
-    axios.post(`http://localhost:3000/api/getPokemon/${offset}/`, {creatures}).then(response => {
-      if(response.data.next !== null){
-        offset += 60
-        this.getSessionPokemon(offset, response.data.pokemon)
-      } else { 
-          let pages = []
-          let page = []
-          
-          for(let i=0; i < response.data.pokemon.length; i++) {
-            if(!response.data.pokemon[i + 1]) {
-              page.push(response.data.pokemon[i])
-              pages.push(page)
-            }
-            else if(page.length < 20) {
-              page.push(response.data.pokemon[i])
-            }
-            else if(page.length === 20){
-              pages.push(page)
-              page = []
-              page.push(response.data.pokemon[i])
-            }
-          }
-          console.log(response.data)
-        this.setState({ pokemon: response.data.pokemon, pages, page: pages[0], pageNum: 0, filteredPokemon: response.data.pokemon})
-      }
-    })
-  }
-
-  getPokemon(url, creatures, num){
-    let pokemon = creatures
-    let offset = num
-    let next = ''
-    axios.get(url+`&offset=${offset}`).then( response => {
-      response.data.results.map(item => {
-        pokemon.push(item)
-      })
-      next = response.data.next
-      if(next !== null) {
-        offset += 60
-        this.getPokemon('https://pokeapi.co/api/v2/pokemon/?limit=60', pokemon, offset)
-      }
-      let page = []
-
-      pokemon.map(guy => {
-        if(page.length < 20) 
-          page.push(guy)
-      })
-      this.setState({pokemon, page})
-    })
-  }
 
   nextPage(){
     if(this.state.pages[this.state.pageNum + 1]){
@@ -210,23 +160,23 @@ class App extends Component {
   render() {
     let style = {'backgroundColor': this.state.color}
 
-    let typeList = this.state.types.length > 0 ? (
+    let typeList = this.props.types.length > 0 ? (
       
-        this.state.types.map(type => {
+        this.props.types.map(type => {
           return <h3>{type}</h3>
         })
       
     ) : <h1>Loading...</h1>
 
-    let pageLinks = this.state.pages.length > 0 ? (
-      this.state.pages.map((page, index) => {
-        return <button style={index === this.state.pageNum ? {backgroundColor: 'blue'} : {backgroundColor: 'red'}} onClick={() => this.choosePage(index)}>{index + 1}</button>
+    let pageLinks = this.props.pages.length > 0 ? (
+      this.props.pages.map((page, index) => {
+        return <button style={index === this.props.pageNum ? {backgroundColor: 'blue'} : {backgroundColor: 'red'}} onClick={() => this.choosePage(index)}>{index + 1}</button>
       })
     ) : <h3>Grabbin guys</h3>
   
-    let pokelist = this.state.page.length > 0 ? (
+    let pokelist = this.props.page.length > 0 ? (
       
-        this.state.page.map(guy => {
+        this.props.page.map(guy => {
           let pokestr = guy.url
           let pokenum = 0
           function getPokenum(str){
@@ -268,4 +218,6 @@ class App extends Component {
   }
 }
 
-export default App;
+const mapStateToProps = state => state
+
+export default connect(mapStateToProps, { getSessionPokemon })(App);
