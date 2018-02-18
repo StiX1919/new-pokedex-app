@@ -8,7 +8,7 @@ const initialState = {
     pokemon: [],
     filteredPokemon: []
 };
-
+//still coding
 const GET_ALL_POKEMON = 'GET_ALL_POKEMON';
 
 export function getSessionPokemon(num, creatures){
