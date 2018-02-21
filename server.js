@@ -1,3 +1,5 @@
+import { response } from '../../../Library/Caches/typescript/2.6/node_modules/@types/spdy';
+
 const express = require('express')
 const { json } = require('body-parser');
 const cors = require('cors');
@@ -25,6 +27,8 @@ app.use((req, res, next)=>{
     next()
 })
 
+
+
 //MASSIVE
 // massive(process.env.CONNECTION_STRING)
 // .then(db => app.set('db', db))
@@ -47,77 +51,39 @@ app.use(session({
 //SAVED FOR BUILD
 // app.use(express.static(`${__dirname}/build`));
 
-// app.use( passport.initialize() )
-// app.use( passport.session() )
-
-// passport.use( 
-//     new Auth0Strategy(
-//   {
-//     domain: process.env.DOMAIN,
-//     clientID: process.env.CLIENT_ID,
-//     clientSecret: process.env.CLIENT_SECRET,
-//     callbackURL: "/api/login"
-//   },
-//   function(accessToken, refreshToken, extraParams, profile, done) {
+getAllDudes = function(currentPokemon, offset) {
+    let dudes = currentPokemon
     
-//     app.get('db').getUserByAuthId([profile.id]).then(response => {
-//         // console.log(response)
+    axios.get(`https://pokeapi.co/api/v2/pokemon/?limit=60&offset=${offset}`).then( response => {
+        response.data.results.map(item => {
+            pokemon.push(item)
+        })
+        next = response.data.next
+        let sentData = {pokemon: dudes, next}
+        if(next === null){
+            console.log('hit the end')
+            req.session.cookie.pokemon = req.body.creatures
+            return sentData
+        }
+        else return sentData
+    })
+}
 
-//         if(!response[0]) {
-//             console.log(profile.id)
-//             app.get('db').createUserByAuthId([profile.id])
-//             .then(created => {
-//                 return done(null, created[0])
-//             })
-//         } else {
-        
-//             return done(null, response[0])
-            
-//         }
-//     })
-
-
-//     // return done(null, profile);
-//   }
-// ));
-
-// passport.serializeUser(function(user, done) {
-//     done(null, user)
-// })
-
-
-
-// passport.deserializeUser(function(obj, done) {
-//     done(null, obj)
-// })
-
-// app.get('/api/login', passport.authenticate('auth0', {successRedirect: '/testPage'}))
-
-
-
-// app.get('/api/types/', (req, res, next) => {
-    
-        
-// })
-app.post('/api/getPokemon/:offset/', (req,res,next) => {
+app.post('/api/getPokemon/', (req,res,next) => {
     console.log('initial session', req.session)
     if(!req.session.cookie.pokemon){
         let dudes = req.body.creatures
-        
-        axios.get(`https://pokeapi.co/api/v2/pokemon/?limit=60&offset=${req.params.offset}`).then( response => {
-            response.data.results.map(item => {
-                dudes.push(item)
-            })
-            next = response.data.next
-            let sentData = {pokemon: dudes, next}
-            if(next === null){
-                console.log('hit the end')
-                req.session.cookie.pokemon = req.body.creatures
+        let sentData = {}
+        let offset = 0
+        getAllDudes(dudes, offset).then(response => {
+            dudes = response.pokemon
+            offset += 60
+            if(response.next !== null){
+                getAllDudes(dudes, offset)
             }
-            res.send(sentData)
-            
-        }).catch(err => console.log(err))
-        console.log('made calls')
+            else res.send(response.pokemon)
+        })
+        
     }
     else {
         console.log('Got from session')

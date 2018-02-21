@@ -34,7 +34,7 @@ class App extends Component {
  
   componentDidMount() {
 
-    this.props.getSessionPokemon(0, [])
+    this.props.getSessionPokemon([])
   }
 
   changeColor(color){
