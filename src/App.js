@@ -4,7 +4,7 @@ import axios from 'axios'
 
 import { connect } from 'react-redux'
 
-import { getSessionPokemon } from './ducks/pokeReducer'
+import { getSessionPokemon, getPokemon2 } from './ducks/pokeReducer'
 
 import Pokecard from './components/pokecard/pokecard'
 
@@ -34,7 +34,12 @@ class App extends Component {
  
   componentDidMount() {
 
-    this.props.getSessionPokemon([])
+    // this.props.getSessionPokemon([])
+    this.props.getPokemon2(this.state.pokemon, 0).then(() => {
+      if(this.props.next !== null){
+        this.props.getPokemon2(this.props.gettingPokemon, this.props.newOffset)
+      }
+    })
   }
 
   changeColor(color){
@@ -220,4 +225,4 @@ class App extends Component {
 
 const mapStateToProps = state => state
 
-export default connect(mapStateToProps, { getSessionPokemon })(App);
+export default connect(mapStateToProps, { getSessionPokemon, getPokemon2 })(App);

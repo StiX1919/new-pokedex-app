@@ -12,6 +12,8 @@ const initialState = {
 
 const GET_ALL_POKEMON = 'GET_ALL_POKEMON';
 
+const GETTING_GUYS = 'GETTING_GUYS'
+
 export function getSessionPokemon(creatures){
     axios.post(`/api/getPokemon/`, {creatures}).then( response => {
         console.log(response)
@@ -62,6 +64,19 @@ export function getSessionPokemon(creatures){
     // }
 }
 
+export function getPokemon2(guys, num) {
+    let pokemon = guys
+    let offset = num
+
+    axios.post(`/api/getPokemon2/${offset}`, pokemon).then( response => {
+        return {
+            type: GETTING_GUYS,
+            payload: response.data
+        }
+        
+    })
+
+}
 
 export default function reducer(state = initialState, action) {
   switch (action.type) {
@@ -73,6 +88,17 @@ export default function reducer(state = initialState, action) {
         pageNum: action.payload.pageNum,
         filteredPokemon: action.payload.pageNum
       });
+    case GETTING_GUYS + 'PENDING':
+      return Object.assign({}, state, {
+          isLoading: true
+      })
+    case GETTING_GUYS + 'FULFILLED':
+      return Object.assign({}, state, {
+          gettingPokemon: action.payload.pokemon,
+          next: action.payload.next,
+            newOffset: action.payload.newOffset,
+            isLoading: false
+      })
     
     default:
       return state;

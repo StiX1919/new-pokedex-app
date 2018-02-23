@@ -1,5 +1,3 @@
-import { response } from '../../../Library/Caches/typescript/2.6/node_modules/@types/spdy';
-
 const express = require('express')
 const { json } = require('body-parser');
 const cors = require('cors');
@@ -51,39 +49,30 @@ app.use(session({
 //SAVED FOR BUILD
 // app.use(express.static(`${__dirname}/build`));
 
-getAllDudes = function(currentPokemon, offset) {
-    let dudes = currentPokemon
-    
-    axios.get(`https://pokeapi.co/api/v2/pokemon/?limit=60&offset=${offset}`).then( response => {
-        response.data.results.map(item => {
-            pokemon.push(item)
-        })
-        next = response.data.next
-        let sentData = {pokemon: dudes, next}
-        if(next === null){
-            console.log('hit the end')
-            req.session.cookie.pokemon = req.body.creatures
-            return sentData
-        }
-        else return sentData
-    })
-}
-
-app.post('/api/getPokemon/', (req,res,next) => {
-    console.log('initial session', req.session)
+app.post('/api/getPokemon2/:offset', (req,res,next) => {
     if(!req.session.cookie.pokemon){
-        let dudes = req.body.creatures
-        let sentData = {}
-        let offset = 0
-        getAllDudes(dudes, offset).then(response => {
-            dudes = response.pokemon
-            offset += 60
-            if(response.next !== null){
-                getAllDudes(dudes, offset)
-            }
-            else res.send(response.pokemon)
-        })
+        console.log(req.body.pokemon)
+        let pokemon = []
         
+        if( req.body.pokemon !== undefined){
+            pokemon = req.body.pokemon
+        }
+        
+        let offset = parseInt(req.params.offset)
+        axios.get(`https://pokeapi.co/api/v2/pokemon/?limit=60&offset=${offset}`).then( response => {
+            response.data.results.map(item => {
+                pokemon.push(item)
+            })
+            let next = response.data.next
+            let newOffset = offset += 60
+            let sentData = {pokemon, next, newOffset}
+            if(next === null){
+                console.log('hit the end')
+                req.session.cookie.pokemon = req.body.creatures
+                res.send(sentData)
+            }
+            else res.send(sentData)
+        })
     }
     else {
         console.log('Got from session')
